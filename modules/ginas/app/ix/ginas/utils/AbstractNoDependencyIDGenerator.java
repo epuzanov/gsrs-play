@@ -8,6 +8,7 @@ package ix.ginas.utils;
  * @param <K>
  */
 public abstract class AbstractNoDependencyIDGenerator<Ignored, K> implements IdGeneratorForType<Ignored, K>{
+	private String name;
 	/**
 	 * Generates the ID by delegating to {@link #generateID()}.
 	 *
@@ -33,4 +34,22 @@ public abstract class AbstractNoDependencyIDGenerator<Ignored, K> implements IdG
 	 * @return the new ID can not be null.
 	 */
 	public abstract K generateID();
+
+	/**
+	 * Set the ID Generator Display Name.
+	* @param name the name of ID Generator; should not be null.
+	 */
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Return ID Generator Display Name.
+	 * @return the name of ID Generator; can not be null.
+	 */
+	@Override
+	public String getName() {
+		return name;
+	}
 }

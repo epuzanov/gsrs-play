@@ -16,6 +16,7 @@ public class UNIIGenerator extends RandomAlphaNumericIDGenerator<Substance>{
 
 	public UNIIGenerator(){
 		super(alphabet,idLen,true);
+		setName("UNII");
 	}
 
 

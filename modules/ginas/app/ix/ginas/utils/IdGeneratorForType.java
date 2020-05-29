@@ -27,4 +27,16 @@ public interface IdGeneratorForType<T, K> {
      * @return {@code true} if this passed in id is valid; {@code false} otherwise.
      */
     boolean isValidId(K id);
+
+    /**
+     * Set a ID Generator Display Name.
+     * @param name the name of ID Generator should not be null.
+     */
+    void setName(String name);
+
+    /**
+     * Return a ID Generator Display Name.
+     * @return a ID Generator Display Name will never be null.
+     */
+    String getName();
 }

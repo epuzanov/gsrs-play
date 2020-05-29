@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +31,7 @@ import ix.core.processing.RecordPersister;
 import ix.core.processing.RecordTransformer;
 import ix.core.util.CachedSupplier;
 import ix.core.util.ConfigHelper;
+import ix.core.util.IOUtil;
 import ix.ginas.models.v1.Substance;
 import ix.ginas.utils.validation.DefaultSubstanceValidator;
 import play.Logger;
@@ -36,10 +39,13 @@ import play.Logger;
 public class GinasUtils {
 	private static CachedSupplier<Boolean> validation=
 			ConfigHelper.supplierOf("ix.ginas.batch.validation", true);
+
+	private static CachedSupplier<Map<String, Object>> idGeneratorConfig=
+			ConfigHelper.supplierOf("ix.ginas.approvalIDGenerator", null);
 	
 	public static GinasProcessingStrategy DEFAULT_BATCH_STRATEGY = GinasProcessingStrategy
 			.ACCEPT_APPLY_ALL_MARK_FAILED();
-	private static IdGeneratorForType<Substance, String> APPROVAL_ID_GEN = new UNIIGenerator();
+	private static IdGeneratorForType<Substance, String> APPROVAL_ID_GEN = makeApprovalIdGen();
 	
 
 
@@ -51,13 +57,36 @@ public class GinasUtils {
 		APPROVAL_ID_GEN = aPPROVAL_ID_GEN;
 	}
 
+	public static String getAPPROVAL_ID_GEN_NAME() {
+		return APPROVAL_ID_GEN.getName();
+	}
+
 	public static String NULL_MOLFILE = "\n\n\n  0  0  0     0  0            999 V2000\nM  END\n\n$$$$";
 
 
 
 
 
-
+	private static IdGeneratorForType<Substance, String> makeApprovalIdGen() {
+		try {
+			Map<String, Object> m = idGeneratorConfig.get();
+			String className = "ix.ginas.utils.UNIIGenerator";
+			Map with = null;
+			if (m != null) {
+				className = (String) m.get("class");
+				with = (Map) m.get("with");
+			}
+			Class<?> idGeneratorCls = IOUtil.getGinasClassLoader().loadClass(className);
+			if(with!=null){
+				Constructor c=idGeneratorCls.getConstructor(Map.class);
+				return (IdGeneratorForType) c.newInstance(with);
+			}else{
+				return (IdGeneratorForType) idGeneratorCls.newInstance();
+			}
+		} catch (Exception e) {
+			return new UNIIGenerator();
+		}
+	}
 
 	public static Substance makeSubstance(InputStream bis) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
